@@ -14,10 +14,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -109,6 +106,18 @@ public class CrawlParser {
                                 //设置更新状态
                                 book.setBookStatus(ruleBean.getBookStatusRule().get(bookStatus));
                             }
+                        }
+                    }
+                    if (StringUtils.isNotBlank(ruleBean.getCatPatten())) {
+                        Pattern bookCatPatten = PatternFactory.getPattern(ruleBean.getCatPatten());
+                        Matcher bookCatMatch = bookCatPatten.matcher(bookDetailHtml);
+                        boolean isFindBookCat = bookCatMatch.find();
+                        if (isFindBookCat) {
+                            String bookCatString = bookCatMatch.group(1);
+                            Integer cat = Optional.ofNullable(ruleBean.getCatMapping())
+                                    .map(m->m.get(bookCatString))
+                                    .orElse(7);
+                            book.setCatId(cat);
                         }
                     }
 

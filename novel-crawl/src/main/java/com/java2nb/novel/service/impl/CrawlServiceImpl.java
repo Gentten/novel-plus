@@ -321,16 +321,19 @@ public class CrawlServiceImpl implements CrawlService {
             //如果该小说不存在，则可以解析入库，但是标记该小说正在入库，30分钟之后才允许再次入库
             if (existBook == null) {
                 //没有该书，可以入库
-                book.setCatId(catId);
+                if(book.getCatId()==null){
+                    book.setCatId(catId);
+                }
                 //根据分类ID查询分类
-                book.setCatName(bookService.queryCatNameByCatId(catId));
-                if (catId == 7) {
+                book.setCatName(bookService.queryCatNameByCatId(book.getCatId()));
+                if (book.getCatId() == 7) {
                     //女频
                     book.setWorkDirection((byte) 1);
                 } else {
                     //男频
                     book.setWorkDirection((byte) 0);
                 }
+
                 book.setCrawlBookId(bookId);
                 book.setCrawlSourceId(sourceId);
                 book.setCrawlLastTime(new Date());

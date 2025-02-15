@@ -34,6 +34,7 @@ public class RuleBean {
     private String authorNamePatten;
     private String picUrlPatten;
     private String statusPatten;
+    private String catPatten;
     private String scorePatten;
     private String visitCountPatten;
     private String descStart;
@@ -54,5 +55,19 @@ public class RuleBean {
 
     private String filterContent;
 
+    /**
+     * 搜索地址
+     */
+    private String searchUrl;
+
+    /**
+     * 搜索后怎么匹配bookId
+     */
+    private String searchBookId;
+
+    /**
+     * 中文类别到系统类别的映射
+     */
+    private Map<String,Integer> catMapping;
 
 }

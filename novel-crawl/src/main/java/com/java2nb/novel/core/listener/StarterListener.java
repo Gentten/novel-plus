@@ -10,11 +10,15 @@ import com.java2nb.novel.entity.CrawlSource;
 import com.java2nb.novel.service.BookService;
 import com.java2nb.novel.service.CrawlService;
 import com.java2nb.novel.utils.Constants;
-import lombok.RequiredArgsConstructor;
+import com.java2nb.novel.utils.CrawlHttpClient;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.beans.factory.annotation.Value;
 
+
+
+import javax.annotation.Resource;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
@@ -22,23 +26,28 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author Administrator
  */
 @WebListener
 @Slf4j
-@RequiredArgsConstructor
 public class StarterListener implements ServletContextListener {
+    @Resource
+    private  BookService bookService;
 
-    private final BookService bookService;
-
-    private final CrawlService crawlService;
-
-    private final CrawlParser crawlParser;
+    @Resource
+    private  CrawlService crawlService;
+    @Resource
+    private  CrawlParser crawlParser;
 
     @Value("${crawl.update.thread}")
     private int updateThreadCount;
+
+    @Resource
+    private  CrawlHttpClient crawlHttpClient;
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
@@ -109,9 +118,14 @@ public class StarterListener implements ServletContextListener {
                         //查询爬虫规则
                         CrawlSource source = crawlService.queryCrawlSource(task.getSourceId());
                         RuleBean ruleBean = new ObjectMapper().readValue(source.getCrawlRule(), RuleBean.class);
+                        String sourceBookId = task.getSourceBookId();
 
+                        //尝试通过搜索去
+                        if(StringUtils.isEmpty(sourceBookId)){
+                            sourceBookId=trySearchBookId(task.getBookName(), ruleBean);;
+                        }
                         if (crawlService.parseBookAndSave(task.getCatId(), ruleBean, task.getSourceId(),
-                            task.getSourceBookId())) {
+                                sourceBookId)) {
                             //采集成功
                             crawlStatus = 1;
                         }
@@ -130,5 +144,24 @@ public class StarterListener implements ServletContextListener {
 
             }
         }).start();
+    }
+
+    /**
+     *  通过名称搜索
+     *
+     * @param bookName 书名
+     * @param ruleBean 爬虫源
+     * @return 搜索的书信息
+     */
+    public String trySearchBookId(String bookName, RuleBean ruleBean) {
+        //搜索
+        String query =ruleBean.getSearchUrl().replaceAll("\\{bookName}", bookName);
+        String html = crawlHttpClient.get(query);
+        Pattern compile = Pattern.compile(ruleBean.getSearchBookId());
+        Matcher matcher = compile.matcher(html);
+        if(html.contains(bookName)&&matcher.find()){
+           return  matcher.group(1);
+        }
+        return  null;
     }
 }

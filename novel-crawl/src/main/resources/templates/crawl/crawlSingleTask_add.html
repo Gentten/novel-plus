@@ -52,6 +52,7 @@
                                     <option value="5">科幻灵异</option>
                                     <option value="6">网游竞技</option>
                                     <option value="7">女生频道</option>
+                                    <option value="-1">默认识别</option>
                                 </select>
                                 </li>
                                 示例：<b>73_73911</b>
@@ -130,15 +131,19 @@
 
         var catId = $("#catId").find("option:selected").val();
 
+        if(catId ===-1){
+            catId=null;
+        }
+
         var sourceName = $("#sourceId").find("option:selected").html();
 
 
         var sourceBookId = $("#sourceBookId").val();
 
-        if (!sourceBookId) {
-            layer.alert("采集的源站小说ID不能为空");
-            return;
-        }
+        // if (!sourceBookId) {
+        //     layer.alert("采集的源站小说ID不能为空");
+        //     return;
+        // }
 
         var bookName = $("#bookName").val();
 
