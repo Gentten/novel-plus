@@ -3,9 +3,10 @@ server:
 
 spring:
   profiles:
-    active: dev
+    active: test
     include: website,alipay,oss
-
+  main:
+    allow-bean-definition-overriding: true
 jwt:
   secret: novel!#20191230
   expiration: 604800

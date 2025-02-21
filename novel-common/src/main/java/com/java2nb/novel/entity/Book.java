@@ -5,6 +5,8 @@ import java.util.Date;
 import javax.annotation.Generated;
 
 public class Book implements Serializable {
+    private static final long serialVersionUID = -4675188502685679460L;
+
     @Generated("org.mybatis.generator.api.MyBatisGenerator")
     private Long id;
 
