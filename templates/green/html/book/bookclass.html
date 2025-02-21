@@ -3,7 +3,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head th:replace="common/header :: common_head(~{::title},~{::meta},~{::link},~{})">
     <title th:text="'全部作品_'+${application.website.name}"></title>
-    <meta name="keywords" th:content="${application.website.name}+',小说,小说网,言情小说,都市小说,玄幻小说,穿越小说,青春小说,总裁豪门小说,网络小说,免费小说,全本小说,原创网络文学'"/>
+    <meta name="keywords"
+          th:content="${application.website.name}+',小说,小说网,言情小说,都市小说,玄幻小说,穿越小说,青春小说,总裁豪门小说,网络小说,免费小说,全本小说,原创网络文学'"/>
     <meta name="description"
           th:content="${application.website.name}+'每日更新小说连载,小说排行榜,提供言情小说,都市小说,玄幻小说,穿越小说,青春小说,总裁豪门小说,网络小说,免费小说,全本小说,首发小说,最新章节免费小说阅读,精彩尽在'+${application.website.name}+'。'"/>
     <link href="favicon.ico" type="image/x-icon" rel="shortcut icon"/>
@@ -30,16 +31,17 @@
                         </span>
                     <span class="so_boy" id="boyCategoryList">
                         </span>
+
                 </li>
-               <!-- <li class="so_free">
-                    <span class="tit">是否免费：</span>
-                    <a href="?b=0&s=0&wb=0&wd=0&up=0&fr=0&so=0&ms=2" class="on">不限</a>
-                    <a href="?b=0&s=0&wb=0&wd=0&up=0&fr=1&so=0&ms=2" class="">免费作品</a>
-                    <a href="?b=0&s=0&wb=0&wd=0&up=0&fr=2&so=0&ms=2" class="">收费作品</a>
-                </li>-->
+                <!-- <li class="so_free">
+                     <span class="tit">是否免费：</span>
+                     <a href="?b=0&s=0&wb=0&wd=0&up=0&fr=0&so=0&ms=2" class="on">不限</a>
+                     <a href="?b=0&s=0&wb=0&wd=0&up=0&fr=1&so=0&ms=2" class="">免费作品</a>
+                     <a href="?b=0&s=0&wb=0&wd=0&up=0&fr=2&so=0&ms=2" class="">收费作品</a>
+                 </li>-->
                 <li class="so_progress">
                     <span class="tit">是否完结：</span>
-                    <a  href="javascript:search(1,20)" class="on">不限</a>
+                    <a href="javascript:search(1,20)" class="on">不限</a>
                     <a filter-value="0" href="javascript:search(1,20)" class="">连载中</a>
                     <a filter-value="1" href="javascript:search(1,20)" class="">已完结</a>
                 </li>
@@ -109,7 +111,7 @@
 
     listBookCategory(catId);
 
-    if(!catId){
+    if (!catId) {
         search(1, 20);
     }
 
@@ -120,46 +122,44 @@
 
         searchData.keyword = $("#searchKey").val();
         var workDirection = $(".so_pd>.on").attr("filter-value");
-        if(workDirection != undefined){
+        if (workDirection != undefined) {
             searchData.workDirection = workDirection;
         }
 
-        if(workDirection == 1){
+        if (workDirection == 1) {
             var catId = $(".so_girl>.on").attr("filter-value");
-        }else{
+        } else {
             var catId = $(".so_boy>.on").attr("filter-value");
         }
 
-        if(catId != undefined){
+        if (catId != undefined) {
             searchData.catId = catId;
         }
 
         var bookStatus = $(".so_progress>.on").attr("filter-value");
-        if(bookStatus != undefined){
+        if (bookStatus != undefined) {
             searchData.bookStatus = bookStatus;
         }
 
         var wordCountMin = $(".so_words>.on").attr("filter-value-min");
-        if(wordCountMin != undefined){
+        if (wordCountMin != undefined) {
             searchData.wordCountMin = wordCountMin;
         }
 
         var wordCountMax = $(".so_words>.on").attr("filter-value-max");
-        if(wordCountMax != undefined){
+        if (wordCountMax != undefined) {
             searchData.wordCountMax = wordCountMax;
         }
 
         var updatePeriod = $(".so_update>.on").attr("filter-value");
-        if(updatePeriod != undefined){
+        if (updatePeriod != undefined) {
             searchData.updatePeriod = updatePeriod;
         }
 
         var sort = $(".so_sort>.on").attr("filter-value");
-        if(sort != undefined){
+        if (sort != undefined) {
             searchData.sort = sort;
         }
-
-
 
 
         $.ajax({
@@ -176,9 +176,9 @@
                         var wordCount = (book.wordCount / 10000).toFixed(2);
                         bookListHtml += (" <tr>\n" +
                             "                    <td class=\"rank\"><i>" + (i + 1) + "</i></td>\n" +
-                            "                    <td class=\"style\"><a href=\"/book/bookclass.html?c="+book.catId+"\"  cls=\"13\">[" + book.catName + "]</a></td>\n" +
-                            "                    <td class=\"name\"><a href=\"/book/"+book.id+".html\" >" + book.bookName + "</a></td>\n" +
-                            "                    <td class=\"chapter\"><a href=\"/book/"+book.id+".html\" >" + book.lastIndexName + "</a>\n" +
+                            "                    <td class=\"style\"><a href=\"/book/bookclass.html?c=" + book.catId + "\"  cls=\"13\">[" + book.catName + "]</a></td>\n" +
+                            "                    <td class=\"name\"><a href=\"/book/" + book.id + ".html\" >" + book.bookName + "</a></td>\n" +
+                            "                    <td class=\"chapter\"><a href=\"/book/" + book.id + ".html\" >" + book.lastIndexName + "</a>\n" +
                             "                    </td>\n" +
                             "                    <td class=\"author\"><a href=\"javascript:void(0)\">" + book.authorName + "</a></td>\n" +
                             "                    <td class=\"word\">" + wordCount + "万</td>\n" +
@@ -241,15 +241,15 @@
                     for (var i = 0; i < categoryList.length; i++) {
                         var category = categoryList[i];
                         if (category.workDirection == 1) {
-                            if(category.id==c){
+                            if (category.id == c) {
                                 workDirection = 1;
                             }
-                            girlCategoryListHtml += (" <a filter-value='"+category.id+"' href=\"javascript:search(1,20)\">" + category.name + "</a>");
+                            girlCategoryListHtml += (" <a filter-value='" + category.id + "' href=\"javascript:search(1,20)\">" + category.name + "</a>");
                         } else {
-                            if(category.id==c){
+                            if (category.id == c) {
                                 workDirection = 0;
                             }
-                            boyCategoryListHtml += (" <a filter-value='"+category.id+"' href=\"javascript:search(1,20)\">" + category.name + "</a>");
+                            boyCategoryListHtml += (" <a filter-value='" + category.id + "' href=\"javascript:search(1,20)\">" + category.name + "</a>");
                         }
                     }
                     $("#boyCategoryList").html(boyCategoryListHtml);
@@ -267,7 +267,7 @@
                         $(".so_boy>.on").removeClass("on");
                         $(".so_boy a").eq(index).addClass("on");
                     })
-                    if(c) {
+                    if (c) {
                         if (workDirection === 1) {
                             $(".so_pd a").eq(1).click();
                             $("#girlCategoryList a[filter-value=" + c + "]").click();
@@ -311,28 +311,28 @@
             console.log(index);
             $(".so_progress>.on").removeClass("on");
             $(".so_progress>.on").removeClass("on");
-            $(".so_progress a").eq(index-1).addClass("on");
+            $(".so_progress a").eq(index - 1).addClass("on");
         })
         $(".so_words a").click(function () {
             var index = $(this).index();
             console.log(index);
             $(".so_words>.on").removeClass("on");
             $(".so_words>.on").removeClass("on");
-            $(".so_words a").eq(index-1).addClass("on");
+            $(".so_words a").eq(index - 1).addClass("on");
         })
         $(".so_update a").click(function () {
             var index = $(this).index();
             console.log(index);
             $(".so_update>.on").removeClass("on");
             $(".so_update>.on").removeClass("on");
-            $(".so_update a").eq(index-1).addClass("on");
+            $(".so_update a").eq(index - 1).addClass("on");
         })
         $(".so_sort a").click(function () {
             var index = $(this).index();
             console.log(index);
             $(".so_sort>.on").removeClass("on");
             $(".so_sort>.on").removeClass("on");
-            $(".so_sort a").eq(index-1).addClass("on");
+            $(".so_sort a").eq(index - 1).addClass("on");
         })
 
 
