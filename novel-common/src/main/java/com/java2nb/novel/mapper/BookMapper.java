@@ -66,6 +66,7 @@ public interface BookMapper {
             @Result(column = "id", property = "id", jdbcType = JdbcType.BIGINT, id = true),
             @Result(column = "work_direction", property = "workDirection", jdbcType = JdbcType.TINYINT),
             @Result(column = "cat_id", property = "catId", jdbcType = JdbcType.INTEGER),
+            @Result(column = "cat2_id", property = "cat2Id", jdbcType = JdbcType.INTEGER),
             @Result(column = "cat_name", property = "catName", jdbcType = JdbcType.VARCHAR),
             @Result(column = "pic_url", property = "picUrl", jdbcType = JdbcType.VARCHAR),
             @Result(column = "book_name", property = "bookName", jdbcType = JdbcType.VARCHAR),
@@ -77,7 +78,7 @@ public interface BookMapper {
             @Result(column = "visit_count", property = "visitCount", jdbcType = JdbcType.BIGINT),
             @Result(column = "word_count", property = "wordCount", jdbcType = JdbcType.INTEGER),
             @Result(column = "comment_count", property = "commentCount", jdbcType = JdbcType.INTEGER),
-            @Result(column="yesterday_buy", property="yesterdayBuy", jdbcType=JdbcType.INTEGER),
+            @Result(column = "yesterday_buy", property = "yesterdayBuy", jdbcType = JdbcType.INTEGER),
             @Result(column = "last_index_id", property = "lastIndexId", jdbcType = JdbcType.BIGINT),
             @Result(column = "last_index_name", property = "lastIndexName", jdbcType = JdbcType.VARCHAR),
             @Result(column = "last_index_update_time", property = "lastIndexUpdateTime", jdbcType = JdbcType.TIMESTAMP),
@@ -119,6 +120,7 @@ public interface BookMapper {
                 c.map(id).toProperty("id")
                         .map(workDirection).toProperty("workDirection")
                         .map(catId).toProperty("catId")
+                        .map(cat2Id).toProperty("cat2Id")
                         .map(catName).toProperty("catName")
                         .map(picUrl).toProperty("picUrl")
                         .map(bookName).toProperty("bookName")
@@ -151,6 +153,7 @@ public interface BookMapper {
                 c.map(id).toProperty("id")
                         .map(workDirection).toProperty("workDirection")
                         .map(catId).toProperty("catId")
+                        .map(cat2Id).toProperty("cat2Id")
                         .map(catName).toProperty("catName")
                         .map(picUrl).toProperty("picUrl")
                         .map(bookName).toProperty("bookName")
@@ -183,6 +186,7 @@ public interface BookMapper {
                 c.map(id).toPropertyWhenPresent("id", record::getId)
                         .map(workDirection).toPropertyWhenPresent("workDirection", record::getWorkDirection)
                         .map(catId).toPropertyWhenPresent("catId", record::getCatId)
+                        .map(cat2Id).toPropertyWhenPresent("cat2Id", record::getCat2Id)
                         .map(catName).toPropertyWhenPresent("catName", record::getCatName)
                         .map(picUrl).toPropertyWhenPresent("picUrl", record::getPicUrl)
                         .map(bookName).toPropertyWhenPresent("bookName", record::getBookName)
@@ -241,6 +245,7 @@ public interface BookMapper {
         return dsl.set(id).equalTo(record::getId)
                 .set(workDirection).equalTo(record::getWorkDirection)
                 .set(catId).equalTo(record::getCatId)
+                .set(cat2Id).equalTo(record::getCat2Id)
                 .set(catName).equalTo(record::getCatName)
                 .set(picUrl).equalTo(record::getPicUrl)
                 .set(bookName).equalTo(record::getBookName)
@@ -271,6 +276,7 @@ public interface BookMapper {
         return dsl.set(id).equalToWhenPresent(record::getId)
                 .set(workDirection).equalToWhenPresent(record::getWorkDirection)
                 .set(catId).equalToWhenPresent(record::getCatId)
+                .set(cat2Id).equalToWhenPresent(record::getCat2Id)
                 .set(catName).equalToWhenPresent(record::getCatName)
                 .set(picUrl).equalToWhenPresent(record::getPicUrl)
                 .set(bookName).equalToWhenPresent(record::getBookName)
@@ -301,6 +307,7 @@ public interface BookMapper {
         return update(c ->
                 c.set(workDirection).equalTo(record::getWorkDirection)
                         .set(catId).equalTo(record::getCatId)
+                        .set(cat2Id).equalTo(record::getCat2Id)
                         .set(catName).equalTo(record::getCatName)
                         .set(picUrl).equalTo(record::getPicUrl)
                         .set(bookName).equalTo(record::getBookName)
@@ -333,6 +340,7 @@ public interface BookMapper {
         return update(c ->
                 c.set(workDirection).equalToWhenPresent(record::getWorkDirection)
                         .set(catId).equalToWhenPresent(record::getCatId)
+                        .set(cat2Id).equalToWhenPresent(record::getCat2Id)
                         .set(catName).equalToWhenPresent(record::getCatName)
                         .set(picUrl).equalToWhenPresent(record::getPicUrl)
                         .set(bookName).equalToWhenPresent(record::getBookName)

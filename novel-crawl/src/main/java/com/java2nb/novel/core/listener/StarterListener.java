@@ -17,7 +17,6 @@ import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.beans.factory.annotation.Value;
 
 
-
 import javax.annotation.Resource;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
@@ -36,18 +35,18 @@ import java.util.regex.Pattern;
 @Slf4j
 public class StarterListener implements ServletContextListener {
     @Resource
-    private  BookService bookService;
+    private BookService bookService;
 
     @Resource
-    private  CrawlService crawlService;
+    private CrawlService crawlService;
     @Resource
-    private  CrawlParser crawlParser;
+    private CrawlParser crawlParser;
 
     @Value("${crawl.update.thread}")
     private int updateThreadCount;
 
     @Resource
-    private  CrawlHttpClient crawlHttpClient;
+    private CrawlHttpClient crawlHttpClient;
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
@@ -65,28 +64,44 @@ public class StarterListener implements ServletContextListener {
                         }
                         for (Book needUpdateBook : bookList) {
                             try {
+                                //没有找到书籍爬虫源
+                                if (needUpdateBook.getCrawlSourceId() == null) {
+                                    continue;
+                                }
+
                                 //查询爬虫源规则
                                 CrawlSource source = crawlService.queryCrawlSource(needUpdateBook.getCrawlSourceId());
                                 RuleBean ruleBean = new ObjectMapper().readValue(source.getCrawlRule(), RuleBean.class);
+                                if (StringUtils.isEmpty(needUpdateBook.getCrawlBookId())) {
+                                    log.info("尝试查询数据：{}", needUpdateBook.getBookName());
+                                    String bookId = trySearchBookId(needUpdateBook.getBookName(), ruleBean);
+                                    if (StringUtils.isEmpty(bookId)) {
+                                        log.warn("没找到书籍：{}", needUpdateBook.getBookName());
+                                        continue;
+                                    }
+                                    bookService.updateCrawlProperties(needUpdateBook.getId(), needUpdateBook.getCrawlSourceId(), bookId);
+                                    needUpdateBook.setCrawlBookId(bookId);
+                                }
+
                                 //解析小说基本信息
                                 crawlParser.parseBook(ruleBean, needUpdateBook.getCrawlBookId(), book -> {
                                     //这里只做老书更新
                                     book.setId(needUpdateBook.getId());
                                     book.setWordCount(needUpdateBook.getWordCount());
                                     if (needUpdateBook.getPicUrl() != null && needUpdateBook.getPicUrl()
-                                        .contains(Constants.LOCAL_PIC_PREFIX)) {
+                                            .contains(Constants.LOCAL_PIC_PREFIX)) {
                                         //本地图片则不更新
                                         book.setPicUrl(null);
                                     }
                                     //查询已存在的章节
                                     Map<Integer, BookIndex> existBookIndexMap = bookService.queryExistBookIndexMap(
-                                        needUpdateBook.getId());
+                                            needUpdateBook.getId());
                                     //解析章节目录
                                     crawlParser.parseBookIndexAndContent(needUpdateBook.getCrawlBookId(), book,
-                                        ruleBean, existBookIndexMap, chapter -> {
-                                            bookService.updateBookAndIndexAndContent(book, chapter.getBookIndexList(),
-                                                chapter.getBookContentList(), existBookIndexMap);
-                                        });
+                                            ruleBean, existBookIndexMap, chapter -> {
+                                                bookService.updateBookAndIndexAndContent(book, chapter.getBookIndexList(),
+                                                        chapter.getBookContentList(), existBookIndexMap);
+                                            });
                                 });
                             } catch (Exception e) {
                                 log.error(e.getMessage(), e);
@@ -121,8 +136,8 @@ public class StarterListener implements ServletContextListener {
                         String sourceBookId = task.getSourceBookId();
 
                         //尝试通过搜索去
-                        if(StringUtils.isEmpty(sourceBookId)){
-                            sourceBookId=trySearchBookId(task.getBookName(), ruleBean);;
+                        if (StringUtils.isEmpty(sourceBookId)) {
+                            sourceBookId = trySearchBookId(task.getBookName(), ruleBean);
                         }
                         if (crawlService.parseBookAndSave(task.getCatId(), ruleBean, task.getSourceId(),
                                 sourceBookId)) {
@@ -147,7 +162,7 @@ public class StarterListener implements ServletContextListener {
     }
 
     /**
-     *  通过名称搜索
+     * 通过名称搜索
      *
      * @param bookName 书名
      * @param ruleBean 爬虫源
@@ -155,13 +170,13 @@ public class StarterListener implements ServletContextListener {
      */
     public String trySearchBookId(String bookName, RuleBean ruleBean) {
         //搜索
-        String query =ruleBean.getSearchUrl().replaceAll("\\{bookName}", bookName);
+        String query = ruleBean.getSearchUrl().replaceAll("\\{bookName}", bookName);
         String html = crawlHttpClient.get(query);
         Pattern compile = Pattern.compile(ruleBean.getSearchBookId());
         Matcher matcher = compile.matcher(html);
-        if(html.contains(bookName)&&matcher.find()){
-           return  matcher.group(1);
+        if (html.contains(bookName) && matcher.find()) {
+            return matcher.group(1);
         }
-        return  null;
+        return null;
     }
 }

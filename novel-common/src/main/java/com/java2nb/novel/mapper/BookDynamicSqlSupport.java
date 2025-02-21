@@ -3,6 +3,7 @@ package com.java2nb.novel.mapper;
 import java.sql.JDBCType;
 import java.util.Date;
 import javax.annotation.Generated;
+
 import org.mybatis.dynamic.sql.SqlColumn;
 import org.mybatis.dynamic.sql.SqlTable;
 
@@ -18,6 +19,9 @@ public final class BookDynamicSqlSupport {
 
     @Generated("org.mybatis.generator.api.MyBatisGenerator")
     public static final SqlColumn<Integer> catId = book.catId;
+
+    @Generated("org.mybatis.generator.api.MyBatisGenerator")
+    public static final SqlColumn<Integer> cat2Id = book.cat2Id;
 
     @Generated("org.mybatis.generator.api.MyBatisGenerator")
     public static final SqlColumn<String> catName = book.catName;
@@ -95,6 +99,9 @@ public final class BookDynamicSqlSupport {
         public final SqlColumn<Byte> workDirection = column("work_direction", JDBCType.TINYINT);
 
         public final SqlColumn<Integer> catId = column("cat_id", JDBCType.INTEGER);
+
+        public final SqlColumn<Integer> cat2Id = column("cat2_id", JDBCType.INTEGER);
+
 
         public final SqlColumn<String> catName = column("cat_name", JDBCType.VARCHAR);
 

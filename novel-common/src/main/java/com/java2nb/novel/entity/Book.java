@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.Date;
 import javax.annotation.Generated;
 
-public class Book implements Serializable{
+public class Book implements Serializable {
     @Generated("org.mybatis.generator.api.MyBatisGenerator")
     private Long id;
 
@@ -13,6 +13,9 @@ public class Book implements Serializable{
 
     @Generated("org.mybatis.generator.api.MyBatisGenerator")
     private Integer catId;
+
+    @Generated("org.mybatis.generator.api.MyBatisGenerator")
+    private Integer cat2Id;
 
     @Generated("org.mybatis.generator.api.MyBatisGenerator")
     private String catName;
@@ -111,6 +114,16 @@ public class Book implements Serializable{
     @Generated("org.mybatis.generator.api.MyBatisGenerator")
     public void setCatId(Integer catId) {
         this.catId = catId;
+    }
+
+    @Generated("org.mybatis.generator.api.MyBatisGenerator")
+    public Integer getCat2Id() {
+        return cat2Id;
+    }
+
+    @Generated("org.mybatis.generator.api.MyBatisGenerator")
+    public void setCat2Id(Integer cat2Id) {
+        this.cat2Id = cat2Id;
     }
 
     @Generated("org.mybatis.generator.api.MyBatisGenerator")
