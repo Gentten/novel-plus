@@ -1,13 +1,14 @@
-
-
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head th:replace="common/header :: common_head(~{::title},~{::meta},~{::link},~{})">
     <title th:text="'小说排行榜_'+${application.website.name}"></title>
-    <meta name="keywords" content="小说排行榜,热门小说榜,小说排行榜完结版,完结小说排行榜,完本小说排行榜,最新小说排行榜,网络小说排行榜,排行榜,点击榜,新书榜,推荐榜" />
-    <meta name="description" th:content="'最新热门网络小说排行榜,包含各类热门小说榜,小说排行榜上都是受用户喜爱的小说作品,精彩尽在'+${application.website.name}+'。'" />
-    <link rel="stylesheet" href="/css/main.css" />
-    <link rel="stylesheet" href="/css/book.css" />
+    <meta name="keywords"
+          content="小说排行榜,热门小说榜,小说排行榜完结版,完结小说排行榜,完本小说排行榜,最新小说排行榜,网络小说排行榜,排行榜,点击榜,新书榜,推荐榜"/>
+    <meta name="description"
+          th:content="'最新热门网络小说排行榜,包含各类热门小说榜,小说排行榜上都是受用户喜爱的小说作品,精彩尽在'+${application.website.name}+'。'"/>
+    <link rel="stylesheet" href="/css/main.css"/>
+    <link rel="stylesheet" href="/css/book.css"/>
 </head>
 <body>
 
@@ -57,10 +58,14 @@
                 </div>
                 <div class="rightList2">
                     <ul id="rankType">
-                        <li><a class="on" href="javascript:listRank(0)">点击榜</a></li>
+                        <li><a class="on" href="javascript:listRank(4)">阅读指数榜</a></li>
+                        <li><a href="javascript:listRank(5)">推荐榜</a></li>
+                        <li><a href="javascript:listRank(6)">收藏榜</a></li>
+                        <li><a href="javascript:listRank(0)">点击榜</a></li>
                         <li><a href="javascript:listRank(1)">新书榜</a></li>
                         <li><a href="javascript:listRank(2)">更新榜</a></li>
                         <li><a href="javascript:listRank(3)">评论榜</a></li>
+
                     </ul>
                 </div>
             </div>
@@ -79,37 +84,37 @@
     })
 
     var rankType = getSearchString("type");
-    if(rankType==undefined){
-        rankType=0;
-    }else{
+    if (rankType == undefined) {
+        rankType = 0;
+    } else {
         $("#rankType a").eq(rankType).click();
     }
     listRank(rankType);
 
-    function listRank(rankType){
+    function listRank(rankType) {
         $.ajax({
             type: "get",
             url: "/book/listRank",
-            data: {'type':rankType,'limit':30},
+            data: {'type': rankType, 'limit': 30},
             dataType: "json",
             success: function (data) {
                 if (data.code == 200) {
                     var bookRankList = data.data;
                     var bookRankListHtml = "";
-                    for(var i=0;i<bookRankList.length;i++){
+                    for (var i = 0; i < bookRankList.length; i++) {
                         var book = bookRankList[i];
                         var classHtml = "";
-                        if(i<3){
-                            classHtml="num"+(i+1);
+                        if (i < 3) {
+                            classHtml = "num" + (i + 1);
                         }
-                        bookRankListHtml+=("<tr>\n" +
-                            "                                <td class=\"rank\"><i class=\""+classHtml+"\">"+(i+1)+"</i></td>\n" +
-                            "                                <td class=\"style\"><a href=\"/book/bookclass.html?c="+book.catId+"\" >["+book.catName+"]</a></td>\n" +
-                            "                                <td class=\"name\"><a href=\"/book/"+book.id+".html\" >"+book.bookName+"</a></td>\n" +
-                            "                                <td class=\"chapter\"><a href=\"/book/"+book.id+".html\" >"+book.lastIndexName+"</a>\n" +
+                        bookRankListHtml += ("<tr>\n" +
+                            "                                <td class=\"rank\"><i class=\"" + classHtml + "\">" + (i + 1) + "</i></td>\n" +
+                            "                                <td class=\"style\"><a href=\"/book/bookclass.html?c=" + book.catId + "\" >[" + book.catName + "]</a></td>\n" +
+                            "                                <td class=\"name\"><a href=\"/book/" + book.id + ".html\" >" + book.bookName + "</a></td>\n" +
+                            "                                <td class=\"chapter\"><a href=\"/book/" + book.id + ".html\" >" + book.lastIndexName + "</a>\n" +
                             "                                </td>\n" +
-                            "                                <td class=\"author\"><a href=\"javascript:void(0)\">"+book.authorName+"</a></td>\n" +
-                            "                                <td class=\"word\">"+(book.wordCount / 10000).toFixed(2)+"万</td>\n" +
+                            "                                <td class=\"author\"><a href=\"javascript:void(0)\">" + book.authorName + "</a></td>\n" +
+                            "                                <td class=\"word\">" + (book.wordCount / 10000).toFixed(2) + "万</td>\n" +
                             "                            </tr>");
                     }
                     $("#bookRankList").html(bookRankListHtml);
@@ -138,6 +143,18 @@
             }
             case 3 : {
                 $("#rankName").html("评论榜");
+                break;
+            }
+            case 4 : {
+                $("#rankName").html("阅读指数榜");
+                break;
+            }
+            case 5 : {
+                $("#rankName").html("推荐榜");
+                break;
+            }
+            case 6 : {
+                $("#rankName").html("收藏榜");
                 break;
             }
 
