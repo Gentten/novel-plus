@@ -68,6 +68,7 @@
 
         select id, book_name, author_name, pic_url, book_desc, score
         from book
+        where word_count > 0
         ORDER BY score, RAND() LIMIT #{limit};
     </select>
 

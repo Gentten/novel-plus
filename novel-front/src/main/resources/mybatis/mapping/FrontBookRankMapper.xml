@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.java2nb.novel.mapper.FrontBookRankMapper">
+
+
+    <resultMap id="BookRankResultMap" type="com.java2nb.novel.entity.BookRank">
+        <id property="id" column="id"/>
+        <result property="bookId" column="book_id"/>
+        <result property="bookName" column="book_name"/>
+        <result property="author" column="author"/>
+        <result property="catId" column="cat_id"/>
+        <result property="rankType" column="rank_type"/>
+        <result property="rankValue" column="rank_value"/>
+        <result property="rankDate" column="rank_date"/>
+        <result property="rankOrder" column="rank_order"/>
+        <result property="extInfo" column="ext_info"/>
+    </resultMap>
+
+
+    <select id="selectMaxRankDate" resultType="String">
+        select max(rank_date)
+        from book_rank
+        where cat_id = #{catId}
+          and rank_type = #{rankType}
+    </select>
+
+    <select id="selectRankListOrder" resultMap="BookRankResultMap">
+        select *
+        from book_rank
+        where cat_id = #{catId}
+          and rank_type = #{rankType}
+          and rank_date = #{rankDate}
+        order by rank_order asc
+    </select>
+
+
+</mapper>

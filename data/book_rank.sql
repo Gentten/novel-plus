@@ -26,3 +26,6 @@ ALTER TABLE book_rank
 
 ALTER TABLE book
     ADD COLUMN cat2_id INT DEFAULT NULL COMMENT '分类Id2';
+
+
+INSERT INTO novel_plus.book_category (id, work_direction, name, sort, create_user_id, create_time, update_user_id, update_time) VALUES (7, 1, '女生频道', 16, null, null, null, null);

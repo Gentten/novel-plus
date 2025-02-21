@@ -83,8 +83,8 @@ public class StarterListener implements ServletContextListener {
                                     needUpdateBook.setCrawlBookId(bookId);
                                 }
 
-                                //解析小说基本信息
-                                crawlParser.parseBook(ruleBean, needUpdateBook.getCrawlBookId(), book -> {
+                                //解析小说状态信息
+                                crawlParser.parseBookStatusInfo(ruleBean, needUpdateBook.getCrawlBookId(), book -> {
                                     //这里只做老书更新
                                     book.setId(needUpdateBook.getId());
                                     book.setWordCount(needUpdateBook.getWordCount());
@@ -99,6 +99,7 @@ public class StarterListener implements ServletContextListener {
                                     //解析章节目录
                                     crawlParser.parseBookIndexAndContent(needUpdateBook.getCrawlBookId(), book,
                                             ruleBean, existBookIndexMap, chapter -> {
+                                                //更新书籍和章节内容
                                                 bookService.updateBookAndIndexAndContent(book, chapter.getBookIndexList(),
                                                         chapter.getBookContentList(), existBookIndexMap);
                                             });

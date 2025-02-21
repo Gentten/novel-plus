@@ -13,6 +13,7 @@ import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -86,14 +87,14 @@ public class CrawlParser {
                     }
 
                     String desc = bookDetailHtml.substring(
-                        bookDetailHtml.indexOf(ruleBean.getDescStart()) + ruleBean.getDescStart().length());
+                            bookDetailHtml.indexOf(ruleBean.getDescStart()) + ruleBean.getDescStart().length());
                     desc = desc.substring(0, desc.indexOf(ruleBean.getDescEnd()));
                     //过滤掉简介中的特殊标签
                     desc = desc.replaceAll("<a[^<]+</a>", "")
-                        .replaceAll("<font[^<]+</font>", "")
-                        .replaceAll("<p>\\s*</p>", "")
-                        .replaceAll("<p>", "")
-                        .replaceAll("</p>", "<br/>");
+                            .replaceAll("<font[^<]+</font>", "")
+                            .replaceAll("<p>\\s*</p>", "")
+                            .replaceAll("<p>", "")
+                            .replaceAll("</p>", "<br/>");
                     //设置书籍简介
                     book.setBookDesc(desc);
                     if (StringUtils.isNotBlank(ruleBean.getStatusPatten())) {
@@ -115,14 +116,14 @@ public class CrawlParser {
                         if (isFindBookCat) {
                             String bookCatString = bookCatMatch.group(1);
                             Integer cat = Optional.ofNullable(ruleBean.getCatMapping())
-                                    .map(m->m.get(bookCatString))
+                                    .map(m -> m.get(bookCatString))
                                     .orElse(7);
                             book.setCatId(cat);
                         }
                     }
 
                     if (StringUtils.isNotBlank(ruleBean.getUpadateTimePatten()) && StringUtils.isNotBlank(
-                        ruleBean.getUpadateTimeFormatPatten())) {
+                            ruleBean.getUpadateTimeFormatPatten())) {
                         Pattern updateTimePatten = PatternFactory.getPattern(ruleBean.getUpadateTimePatten());
                         Matcher updateTimeMatch = updateTimePatten.matcher(bookDetailHtml);
                         boolean isFindUpdateTime = updateTimeMatch.find();
@@ -130,7 +131,82 @@ public class CrawlParser {
                             String updateTime = updateTimeMatch.group(1);
                             //设置更新时间
                             book.setLastIndexUpdateTime(
-                                new SimpleDateFormat(ruleBean.getUpadateTimeFormatPatten()).parse(updateTime));
+                                    new SimpleDateFormat(ruleBean.getUpadateTimeFormatPatten()).parse(updateTime));
+
+                        }
+                    }
+
+                }
+                if (book.getVisitCount() == null && book.getScore() != null) {
+                    //随机根据评分生成访问次数
+                    book.setVisitCount(RandomBookInfoUtil.getVisitCountByScore(book.getScore()));
+                } else if (book.getVisitCount() != null && book.getScore() == null) {
+                    //随机根据访问次数生成评分
+                    book.setScore(RandomBookInfoUtil.getScoreByVisitCount(book.getVisitCount()));
+                } else if (book.getVisitCount() == null && book.getScore() == null) {
+                    //都没有，设置成固定值
+                    book.setVisitCount(Constants.VISIT_COUNT_DEFAULT);
+                    book.setScore(6.5f);
+                }
+            }
+        }
+        handler.handle(book);
+    }
+
+    /**
+     * 仅仅解析 book的状态信息
+     *
+     * @param ruleBean 规则
+     * @param bookId   bookId
+     * @param handler  handler
+     */
+    @SneakyThrows
+    public void parseBookStatusInfo(RuleBean ruleBean, String bookId, CrawlBookHandler handler) {
+        Book book = new Book();
+        String bookDetailUrl = ruleBean.getBookDetailUrl().replace("{bookId}", bookId);
+        String bookDetailHtml = crawlHttpClient.get(bookDetailUrl);
+        if (bookDetailHtml != null) {
+            Pattern bookNamePatten = PatternFactory.getPattern(ruleBean.getBookNamePatten());
+            Matcher bookNameMatch = bookNamePatten.matcher(bookDetailHtml);
+            boolean isFindBookName = bookNameMatch.find();
+            if (isFindBookName) {
+                String bookName = bookNameMatch.group(1);
+                Pattern authorNamePatten = PatternFactory.getPattern(ruleBean.getAuthorNamePatten());
+                Matcher authorNameMatch = authorNamePatten.matcher(bookDetailHtml);
+                boolean isFindAuthorName = authorNameMatch.find();
+                if (isFindAuthorName) {
+                    if (StringUtils.isNotBlank(ruleBean.getScorePatten())) {
+                        Pattern scorePatten = PatternFactory.getPattern(ruleBean.getScorePatten());
+                        Matcher scoreMatch = scorePatten.matcher(bookDetailHtml);
+                        boolean isFindScore = scoreMatch.find();
+                        if (isFindScore) {
+                            String score = scoreMatch.group(1);
+                            //设置评分
+                            book.setScore(Float.parseFloat(score));
+                        }
+                    }
+                    if (StringUtils.isNotBlank(ruleBean.getVisitCountPatten())) {
+                        Pattern visitCountPatten = PatternFactory.getPattern(ruleBean.getVisitCountPatten());
+                        Matcher visitCountMatch = visitCountPatten.matcher(bookDetailHtml);
+                        boolean isFindVisitCount = visitCountMatch.find();
+                        if (isFindVisitCount) {
+                            String visitCount = visitCountMatch.group(1);
+                            //设置访问次数
+                            book.setVisitCount(Long.parseLong(visitCount));
+                        }
+                    }
+
+                    //更新时间
+                    if (StringUtils.isNotBlank(ruleBean.getUpadateTimePatten()) && StringUtils.isNotBlank(
+                            ruleBean.getUpadateTimeFormatPatten())) {
+                        Pattern updateTimePatten = PatternFactory.getPattern(ruleBean.getUpadateTimePatten());
+                        Matcher updateTimeMatch = updateTimePatten.matcher(bookDetailHtml);
+                        boolean isFindUpdateTime = updateTimeMatch.find();
+                        if (isFindUpdateTime) {
+                            String updateTime = updateTimeMatch.group(1);
+                            //设置更新时间
+                            book.setLastIndexUpdateTime(
+                                    new SimpleDateFormat(ruleBean.getUpadateTimeFormatPatten()).parse(updateTime));
 
                         }
                     }
@@ -153,7 +229,7 @@ public class CrawlParser {
     }
 
     public boolean parseBookIndexAndContent(String sourceBookId, Book book, RuleBean ruleBean,
-        Map<Integer, BookIndex> existBookIndexMap, CrawlBookChapterHandler handler) {
+                                            Map<Integer, BookIndex> existBookIndexMap, CrawlBookChapterHandler handler) {
 
         Date currentDate = new Date();
 
@@ -166,7 +242,7 @@ public class CrawlParser {
         if (indexListHtml != null) {
             if (StringUtils.isNotBlank(ruleBean.getBookIndexStart())) {
                 indexListHtml = indexListHtml.substring(
-                    indexListHtml.indexOf(ruleBean.getBookIndexStart()) + ruleBean.getBookIndexStart().length());
+                        indexListHtml.indexOf(ruleBean.getBookIndexStart()) + ruleBean.getBookIndexStart().length());
             }
 
             Pattern indexIdPatten = PatternFactory.getPattern(ruleBean.getIndexIdPatten());
@@ -188,7 +264,7 @@ public class CrawlParser {
                 String indexName = indexNameMatch.group(1);
 
                 if (hasIndex == null || !StringUtils.deleteWhitespace(hasIndex.getIndexName())
-                    .equals(StringUtils.deleteWhitespace(indexName))) {
+                        .equals(StringUtils.deleteWhitespace(indexName))) {
 
                     String sourceIndexId = indexIdMatch.group(1);
                     String bookContentUrl = ruleBean.getBookContentUrl();
@@ -196,7 +272,7 @@ public class CrawlParser {
                     if (calStart != -1) {
                         //内容页URL需要进行计算才能得到
                         String calStr = bookContentUrl.substring(calStart,
-                            calStart + bookContentUrl.substring(calStart).indexOf("}"));
+                                calStart + bookContentUrl.substring(calStart).indexOf("}"));
                         String[] calArr = calStr.split("_");
                         int calType = Integer.parseInt(calArr[1]);
                         if (calType == 1) {
@@ -222,13 +298,13 @@ public class CrawlParser {
                     }
 
                     String contentUrl = bookContentUrl.replace("{bookId}", sourceBookId)
-                        .replace("{indexId}", sourceIndexId);
+                            .replace("{indexId}", sourceIndexId);
 
                     //查询章节内容
                     String contentHtml = crawlHttpClient.get(contentUrl);
                     if (contentHtml != null && !contentHtml.contains("正在手打中")) {
                         String content = contentHtml.substring(
-                            contentHtml.indexOf(ruleBean.getContentStart()) + ruleBean.getContentStart().length());
+                                contentHtml.indexOf(ruleBean.getContentStart()) + ruleBean.getContentStart().length());
                         content = content.substring(0, content.indexOf(ruleBean.getContentEnd()));
                         // 小说内容过滤
                         String filterContent = ruleBean.getFilterContent();

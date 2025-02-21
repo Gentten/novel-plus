@@ -93,9 +93,19 @@ public class QDRankCrawlServiceImpl implements QDRankCrawlService {
             //1、先查询
             Optional<Book> book = crawlBookMapper.selectOne(s -> s.where(BookDynamicSqlSupport.authorName, isEqualTo(qdRook.getAuthor())).and(BookDynamicSqlSupport.bookName, isEqualTo(qdRook.getName())));
 
+            Book newData = toBook(qdRook);
+            //不存在插入
             if (!book.isPresent()) {
-                Book data = toBook(qdRook);
-                crawlBookMapper.insertSelective(data);
+                crawlBookMapper.insertSelective(newData);
+            } else {
+                //存在就更新
+                Book old = book.get();
+                //<img class="lazyload" src="/images/default.gif" data-src="/images/default.gif" alt="名门喜事"> 当图片连接不是/images/default.gif 就不更新了
+                if (!"/images/default.gif".equals(old.getPicUrl())) {
+                    newData.setPicUrl(null);
+                }
+                newData.setId(old.getId());
+                crawlBookMapper.updateByPrimaryKeySelective(newData);
             }
             book = crawlBookMapper.selectOne(s -> s.where(BookDynamicSqlSupport.authorName, isEqualTo(qdRook.getAuthor())).and(BookDynamicSqlSupport.bookName, isEqualTo(qdRook.getName())));
 
@@ -253,8 +263,6 @@ public class QDRankCrawlServiceImpl implements QDRankCrawlService {
             qdRook.setStatus(status.getText());
 
             qdRook.setType("女生");
-
-
 
 
             RankValue rankValue = new RankValue();
