@@ -9,6 +9,7 @@ import com.java2nb.novel.service.BookContentService;
 import com.java2nb.novel.service.BookService;
 import com.java2nb.novel.utils.Constants;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.mybatis.dynamic.sql.render.RenderingStrategies;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,6 +31,7 @@ import static org.mybatis.dynamic.sql.select.SelectDSL.select;
  * @author Administrator
  */
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class BookServiceImpl implements BookService {
 
@@ -58,6 +60,7 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void updateCrawlProperties(Long id, Integer sourceId, String bookId) {
         bookMapper.update(update(BookDynamicSqlSupport.book)
                 .set(crawlSourceId)
@@ -135,6 +138,7 @@ public class BookServiceImpl implements BookService {
     private Long getStartId() {
         String picSaveScanTaskIdx = cacheService.get("BOOK_CRAWL_SCAN_TASK_INDEX");
         if (NumberUtils.isNumber(picSaveScanTaskIdx)) {
+            log.warn("BOOK_CRAWL_SCAN_TASK_INDEX:" + picSaveScanTaskIdx);
             return NumberUtils.toLong(picSaveScanTaskIdx);
         }
         return 0L;
@@ -147,7 +151,7 @@ public class BookServiceImpl implements BookService {
                 .where(BookIndexDynamicSqlSupport.bookId, isEqualTo(bookId))
                 .build()
                 .render(RenderingStrategies.MYBATIS3));
-        if (bookIndexs.size() > 0) {
+        if (!bookIndexs.isEmpty()) {
             return bookIndexs.stream().collect(Collectors.toMap(BookIndex::getIndexNum, Function.identity()));
         }
         return new HashMap<>(0);
@@ -178,11 +182,27 @@ public class BookServiceImpl implements BookService {
         //更新小说主表
         book.setBookName(null);
         book.setAuthorName(null);
+        book.setUpdateTime(new Date());
         if (Constants.VISIT_COUNT_DEFAULT.equals(book.getVisitCount())) {
             book.setVisitCount(null);
         }
         bookMapper.updateByPrimaryKeySelective(book);
 
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updateBookAndIndexAndContent(Book book, BookIndex bookIndex, BookContent bookContent, Map<Integer, BookIndex> existBookIndexMap) {
+        if (!existBookIndexMap.containsKey(bookIndex.getIndexNum())) {
+            //插入
+            bookIndex.setStorageType(storageType);
+            bookIndexMapper.insertSelective(bookIndex);
+            bookContentServiceMap.get(storageType).saveBookContent(bookContent, book.getId());
+        } else {
+            //更新
+            bookIndexMapper.updateByPrimaryKeySelective(bookIndex);
+            bookContentServiceMap.get(existBookIndexMap.get(bookIndex.getIndexNum()).getStorageType()).updateBookContent(bookContent, book.getId());
+        }
     }
 
     @Override
@@ -201,7 +221,7 @@ public class BookServiceImpl implements BookService {
                 .build()
                 .render(RenderingStrategies.MYBATIS3));
 
-        if (books.size() > 0) {
+        if (!books.isEmpty()) {
             return books.get(0);
         }
 

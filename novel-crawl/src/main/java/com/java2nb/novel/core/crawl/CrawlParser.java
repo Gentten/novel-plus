@@ -5,6 +5,7 @@ import com.java2nb.novel.core.utils.StringUtil;
 import com.java2nb.novel.entity.Book;
 import com.java2nb.novel.entity.BookContent;
 import com.java2nb.novel.entity.BookIndex;
+import com.java2nb.novel.service.BookService;
 import com.java2nb.novel.utils.Constants;
 import com.java2nb.novel.utils.CrawlHttpClient;
 import io.github.xxyopen.util.IdWorker;
@@ -13,7 +14,6 @@ import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -234,7 +234,7 @@ public class CrawlParser {
         Date currentDate = new Date();
 
         List<BookIndex> indexList = new ArrayList<>();
-        List<BookContent> contentList = new ArrayList<>();
+        int contentSize = 0;
         //读取目录
         String indexListUrl = ruleBean.getBookIndexUrl().replace("{bookId}", sourceBookId);
         String indexListHtml = crawlHttpClient.get(indexListUrl);
@@ -322,17 +322,16 @@ public class CrawlParser {
                         bookIndex.setIndexNum(indexNum);
                         int wordCount = StringUtil.getStrValidWordCount(content);
                         bookIndex.setWordCount(wordCount);
-                        indexList.add(bookIndex);
+
 
                         BookContent bookContent = new BookContent();
                         bookContent.setContent(content);
-                        contentList.add(bookContent);
+
 
                         if (hasIndex != null) {
                             //章节更新
                             bookIndex.setId(hasIndex.getId());
                             bookContent.setIndexId(hasIndex.getId());
-
                             //计算总字数
                             totalWordCount = (totalWordCount + wordCount - hasIndex.getWordCount());
                         } else {
@@ -351,7 +350,11 @@ public class CrawlParser {
                         }
                         bookIndex.setUpdateTime(currentDate);
 
+                        //改为单条更新  避免超大事务
+                        handler.handleSingle(book, bookIndex, bookContent);
 
+                        indexList.add(bookIndex);
+                        contentSize++;
                     }
 
 
@@ -360,7 +363,9 @@ public class CrawlParser {
                 isFindIndex = indexIdMatch.find() & indexNameMatch.find();
             }
 
-            if (indexList.size() > 0) {
+
+            //书籍信息汇总
+            if (!indexList.isEmpty()) {
                 //如果有爬到最新章节，则设置小说主表的最新章节信息
                 //获取爬取到的最新章节
                 BookIndex lastIndex = indexList.get(indexList.size() - 1);
@@ -371,25 +376,15 @@ public class CrawlParser {
             }
             book.setWordCount(totalWordCount);
             book.setUpdateTime(currentDate);
-
-            if (indexList.size() == contentList.size() && indexList.size() > 0) {
-
-                handler.handle(new ChapterBean() {{
-                    setBookIndexList(indexList);
-                    setBookContentList(contentList);
-                }});
-
-                return true;
-
-            }
-
         }
 
+        //最终更新下数据信息
         handler.handle(new ChapterBean() {{
             setBookIndexList(new ArrayList<>(0));
             setBookContentList(new ArrayList<>(0));
         }});
-        return false;
+
+        return indexList.size() == contentSize && !indexList.isEmpty();
 
     }
 }

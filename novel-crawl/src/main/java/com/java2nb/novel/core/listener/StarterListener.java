@@ -1,12 +1,11 @@
 package com.java2nb.novel.core.listener;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.java2nb.novel.core.crawl.ChapterBean;
+import com.java2nb.novel.core.crawl.CrawlBookChapterHandler;
 import com.java2nb.novel.core.crawl.CrawlParser;
 import com.java2nb.novel.core.crawl.RuleBean;
-import com.java2nb.novel.entity.Book;
-import com.java2nb.novel.entity.BookIndex;
-import com.java2nb.novel.entity.CrawlSingleTask;
-import com.java2nb.novel.entity.CrawlSource;
+import com.java2nb.novel.entity.*;
 import com.java2nb.novel.service.BookService;
 import com.java2nb.novel.service.CrawlService;
 import com.java2nb.novel.utils.Constants;
@@ -15,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.util.CollectionUtils;
 
 
 import javax.annotation.Resource;
@@ -51,7 +51,7 @@ public class StarterListener implements ServletContextListener {
     @Override
     public void contextInitialized(ServletContextEvent sce) {
         for (int i = 0; i < updateThreadCount; i++) {
-            new Thread(() -> {
+            Thread thread = new Thread(() -> {
                 log.info("程序启动,开始执行自动更新线程。。。");
                 while (true) {
                     try {
@@ -98,27 +98,41 @@ public class StarterListener implements ServletContextListener {
                                             needUpdateBook.getId());
                                     //解析章节目录
                                     crawlParser.parseBookIndexAndContent(needUpdateBook.getCrawlBookId(), book,
-                                            ruleBean, existBookIndexMap, chapter -> {
-                                                //更新书籍和章节内容
-                                                bookService.updateBookAndIndexAndContent(book, chapter.getBookIndexList(),
-                                                        chapter.getBookContentList(), existBookIndexMap);
+                                            ruleBean, existBookIndexMap, new CrawlBookChapterHandler() {
+                                                @Override
+                                                public void handle(ChapterBean chapter) {
+                                                    //更新书籍和章节内容
+                                                    bookService.updateBookAndIndexAndContent(book, chapter.getBookIndexList(),
+                                                            chapter.getBookContentList(), existBookIndexMap);
+                                                }
+
+                                                @Override
+                                                public void handleSingle(Book book, BookIndex bookIndex, BookContent bookContent) {
+                                                    bookService.updateBookAndIndexAndContent(book, bookIndex, bookContent, existBookIndexMap);
+                                                }
                                             });
                                 });
                             } catch (Exception e) {
-                                log.error(e.getMessage(), e);
+                                log.error(needUpdateBook.getId() + ":更新数据异常:" + e.getMessage(), e);
                             }
 
                         }
-                        //  休眠10分钟
-                        TimeUnit.MINUTES.sleep(10);
+                        if (CollectionUtils.isEmpty(bookList)) {
+                            //  休眠10分钟
+                            TimeUnit.MINUTES.sleep(10);
+                        }
+                        //休眠10s 后面继续下一批
+                        TimeUnit.SECONDS.sleep(10);
                     } catch (Exception e) {
                         log.error(e.getMessage(), e);
                     }
 
                 }
-            }).start();
+            });
 
 
+            thread.setName("UPBookThread_" + i);
+            thread.start();
         }
 
         new Thread(() -> {
