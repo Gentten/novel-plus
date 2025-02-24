@@ -60,7 +60,7 @@ public class StarterListener implements ServletContextListener {
                         Date startDate = DateUtils.addDays(currentDate, -30);
                         List<Book> bookList;
                         synchronized (this) {
-                            bookList = bookService.queryNeedUpdateBook(startDate, 100);
+                            bookList = bookService.queryNeedUpdateBook(startDate, 10);
                         }
                         for (Book needUpdateBook : bookList) {
                             try {

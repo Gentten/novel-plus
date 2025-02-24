@@ -5,10 +5,19 @@
 
     <select id="queryNeedUpdateBook" resultType="com.java2nb.novel.entity.Book">
 
-        select id,crawl_source_id,author_name,book_name,crawl_book_id,crawl_last_time,pic_url,word_count
-        from book where last_index_update_time > #{startDate} and crawl_source_id is not null
-        order by crawl_last_time
-        limit ${limit}
+        select id,
+               crawl_source_id,
+               author_name,
+               book_name,
+               crawl_book_id,
+               crawl_last_time,
+               pic_url,
+               word_count
+        from book
+        where last_index_update_time > #{startDate}
+          and crawl_source_id is not null
+          and id > #{startId}
+            limit ${limit}
 
 
     </select>

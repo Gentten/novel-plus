@@ -1,5 +1,6 @@
 package com.java2nb.novel.service.impl;
 
+import com.java2nb.novel.core.cache.CacheService;
 import com.java2nb.novel.entity.Book;
 import com.java2nb.novel.entity.BookContent;
 import com.java2nb.novel.entity.BookIndex;
@@ -8,15 +9,14 @@ import com.java2nb.novel.service.BookContentService;
 import com.java2nb.novel.service.BookService;
 import com.java2nb.novel.utils.Constants;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.mybatis.dynamic.sql.render.RenderingStrategies;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -32,6 +32,8 @@ import static org.mybatis.dynamic.sql.select.SelectDSL.select;
 @Service
 @RequiredArgsConstructor
 public class BookServiceImpl implements BookService {
+
+    private final CacheService cacheService;
 
     private final CrawlBookMapper bookMapper;
 
@@ -103,12 +105,39 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public List<Book> queryNeedUpdateBook(Date startDate, int limit) {
-        List<Book> books = bookMapper.queryNeedUpdateBook(startDate, limit);
-        if (books.size() > 0) {
-            //更新最后抓取时间为当前时间
-            bookMapper.updateCrawlLastTime(books, new Date());
-        }
+        List<Book> books = bookMapper.queryNeedUpdateBook(startDate, limit, getStartId());
+        saveScanIdx(books);
         return books;
+    }
+
+    /**
+     * 保存扫描索引
+     *
+     * @param bookList 查询bookList
+     */
+    private void saveScanIdx(List<Book> bookList) {
+        if (CollectionUtils.isEmpty(bookList)) {
+            return;
+        }
+        Optional<Long> max = bookList.stream().map(Book::getId)
+                .filter(Objects::nonNull)
+                .max(Long::compareTo);
+
+        //存在则设置
+        max.ifPresent(maxId -> cacheService.set("BOOK_CRAWL_SCAN_TASK_INDEX", String.valueOf(maxId), 60 * 10));
+    }
+
+    /**
+     * 获取起始ID
+     *
+     * @return 起始搜索位置
+     */
+    private Long getStartId() {
+        String picSaveScanTaskIdx = cacheService.get("BOOK_CRAWL_SCAN_TASK_INDEX");
+        if (NumberUtils.isNumber(picSaveScanTaskIdx)) {
+            return NumberUtils.toLong(picSaveScanTaskIdx);
+        }
+        return 0L;
     }
 
     @Override

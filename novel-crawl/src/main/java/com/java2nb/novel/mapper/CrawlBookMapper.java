@@ -2,6 +2,7 @@ package com.java2nb.novel.mapper;
 
 import com.java2nb.novel.entity.Book;
 import org.apache.ibatis.annotations.Param;
+import org.springframework.security.core.parameters.P;
 
 import java.util.Date;
 import java.util.List;
@@ -13,11 +14,12 @@ public interface CrawlBookMapper extends BookMapper {
 
     /**
      * 查询需要更新的小说数据
+     *
      * @param startDate 最新更新时间的起始时间
-     * @param limit 查询条数
+     * @param limit     查询条数
      * @return 小说集合
-     * */
-    List<Book> queryNeedUpdateBook(@Param("startDate") Date startDate, @Param("limit") int limit);
+     */
+    List<Book> queryNeedUpdateBook(@Param("startDate") Date startDate, @Param("limit") int limit, @Param("startId") Long startId);
 
     /**
      * 查询小说总字数
