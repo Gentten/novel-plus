@@ -61,7 +61,7 @@
         from book
         where pic_url like 'http%'
           and pic_url not like concat('%', #{localPicPrefix}, '%')
-            limit #{limit}
+          and id >= #{startId} limit #{limit}
     </select>
 
     <select id="selectIdsByScoreAndRandom" parameterType="int" resultType="com.java2nb.novel.entity.Book">

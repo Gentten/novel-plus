@@ -27,6 +27,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.mybatis.dynamic.sql.SortSpecification;
 import org.mybatis.dynamic.sql.render.RenderingStrategies;
 import org.mybatis.dynamic.sql.select.render.SelectStatementProvider;
@@ -523,13 +524,51 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public List<Book> queryNetworkPicBooks(String localPicPrefix, Integer limit) {
-        return bookMapper.queryNetworkPicBooks(localPicPrefix, limit);
+        List<Book> bookList = bookMapper.queryNetworkPicBooks(localPicPrefix, limit, getStartId());
+        saveScanIdx(bookList);
+        return bookList;
+    }
+
+
+    /**
+     * 保存扫描索引
+     *
+     * @param bookList 查询bookList
+     */
+    private void saveScanIdx(List<Book> bookList) {
+        if (CollectionUtils.isEmpty(bookList)) {
+            return;
+        }
+        Optional<Long> max = bookList.stream().map(Book::getId)
+                .filter(Objects::nonNull)
+                .max(Long::compareTo);
+
+        //存在则设置
+        max.ifPresent(maxId -> cacheService.set("PIC_SAVE_SCAN_TASK_INDEX", String.valueOf(maxId), 60 * 30L));
+    }
+
+    /**
+     * 获取起始ID
+     *
+     * @return 起始搜索位置
+     */
+    private Long getStartId() {
+        String picSaveScanTaskIdx = cacheService.get("PIC_SAVE_SCAN_TASK_INDEX");
+        if (NumberUtils.isNumber(picSaveScanTaskIdx)) {
+            return NumberUtils.toLong(picSaveScanTaskIdx);
+        }
+        return 0L;
     }
 
     @Override
     public void updateBookPicToLocal(String picUrl, Long bookId) {
 
         picUrl = fileService.transFile(picUrl, picSavePath);
+
+        if ("/images/default.gif".equals(picUrl)) {
+            log.warn("图片转换失败则跳过");
+            return;
+        }
 
         bookMapper.update(update(book)
                 .set(BookDynamicSqlSupport.picUrl)

@@ -34,7 +34,7 @@ public class StarterListener implements ServletContextListener {
                 setDescription(websiteProperties.getDescription());
                 setQq(websiteProperties.getQq());
                 setLogo("/images/logo.png");
-                setLogoDark("/images/logo_white.png");
+                setLogoDark("/images/logo.png");
             }}));
     }
 }
