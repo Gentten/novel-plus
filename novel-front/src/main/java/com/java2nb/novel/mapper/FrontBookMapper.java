@@ -21,7 +21,7 @@ public interface FrontBookMapper extends BookMapper {
 
     void addCommentCount(@Param("bookId") Long bookId);
 
-    List<Book> queryNetworkPicBooks(@Param("localPicPrefix") String localPicPrefix, @Param("limit") Integer limit, @Param("start") Long startId);
+    List<Book> queryNetworkPicBooks(@Param("localPicPrefix") String localPicPrefix, @Param("limit") Integer limit, @Param("startId") Long startId);
 
     /**
      * 按评分随机查询小说集合
