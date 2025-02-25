@@ -12,8 +12,10 @@ import com.java2nb.novel.entity.CrawlSource;
 import com.java2nb.novel.service.CrawlService;
 import io.github.xxyopen.model.resp.RestResult;
 import lombok.RequiredArgsConstructor;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -68,10 +70,22 @@ public class CrawlController {
      * 爬取起点排行榜
      */
     @GetMapping("crawlRank")
-    public RestResult<List<QDRook>> crawlQDRank(@RequestParam("rank") String rank, @RequestParam("category") String category) {
-        List<QDRook> qdRookList = qdRankCrawlService.crawlRankBooks(category, rank);
-        qdRankCrawlService.saveQDBook(qdRookList);
-        return RestResult.ok(qdRookList);
+    public RestResult<Integer> crawlQDRank(@RequestParam("rank") List<String> rank, @RequestParam("category") List<String> category) {
+        int size = 0;
+        if (!CollectionUtils.isEmpty(rank)) {
+            for (String rankType : rank) {
+                if (CollectionUtils.isEmpty(category)) {
+                    category = Collections.singletonList("");
+                }
+                for (String categoryType : category) {
+                    List<QDRook> qdRookList = qdRankCrawlService.crawlRankBooks(categoryType, rankType);
+                    qdRankCrawlService.saveQDBook(qdRookList);
+                    size += qdRookList.size();
+                }
+            }
+
+        }
+        return RestResult.ok(size);
     }
 
     /**

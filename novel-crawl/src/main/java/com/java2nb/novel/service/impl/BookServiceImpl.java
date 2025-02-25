@@ -138,7 +138,7 @@ public class BookServiceImpl implements BookService {
     private Long getStartId() {
         String picSaveScanTaskIdx = cacheService.get("BOOK_CRAWL_SCAN_TASK_INDEX");
         if (NumberUtils.isNumber(picSaveScanTaskIdx)) {
-            log.warn("BOOK_CRAWL_SCAN_TASK_INDEX:" + picSaveScanTaskIdx);
+            log.error("BOOK_CRAWL_SCAN_TASK_INDEX:" + picSaveScanTaskIdx);
             return NumberUtils.toLong(picSaveScanTaskIdx);
         }
         return 0L;

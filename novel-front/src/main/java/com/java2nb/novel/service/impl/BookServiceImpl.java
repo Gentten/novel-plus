@@ -566,7 +566,7 @@ public class BookServiceImpl implements BookService {
         picUrl = fileService.transFile(picUrl, picSavePath);
 
         if ("/images/default.gif".equals(picUrl)) {
-            log.warn("图片转换失败则跳过");
+            log.error(bookId + ":图片转换失败:" + picUrl);
             return;
         }
 

@@ -71,18 +71,22 @@ public class QDRankCrawlServiceImpl implements QDRankCrawlService {
             for (String page : pageList) {
                 String url = categoryUrl + "/" + page;
                 log.info("正在爬取：{}", url);
-                driver.get(url);
-                List<QDRook> bookList = readBooKList(driver, order, rankType, channel);
-                if (CollectionUtils.isEmpty(bookList)) {
-                    //空的就不需要往后查询了
-                    break;
+                try {
+                    driver.get(url);
+                    List<QDRook> bookList = readBooKList(driver, order, rankType, channel);
+                    if (CollectionUtils.isEmpty(bookList)) {
+                        //空的就不需要往后查询了
+                        break;
+                    }
+                    ordered.addAll(bookList);
+                } catch (Exception e) {
+                    log.error("爬取失败:" + url, e);
                 }
-                ordered.addAll(bookList);
+
             }
         } finally {
             driver.quit();
         }
-
 
         return ordered;
     }

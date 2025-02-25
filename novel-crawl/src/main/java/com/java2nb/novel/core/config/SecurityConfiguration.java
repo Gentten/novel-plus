@@ -51,15 +51,16 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable()
-            .authorizeRequests()
-            .antMatchers("/css/**").permitAll()
-            .antMatchers("/favicon.ico").permitAll()
-            .antMatchers("/**").hasRole("ADMIN")
-            .and().formLogin().loginPage("/login.html").loginProcessingUrl("/login").permitAll()
-            .and().logout()
-            .logoutUrl("/logout")
-            .logoutSuccessUrl("/")
-            .and().httpBasic();
+                .authorizeRequests()
+                .antMatchers("/css/**").permitAll()
+                .antMatchers("/crawl/crawlRank/**").permitAll()
+                .antMatchers("/favicon.ico").permitAll()
+                .antMatchers("/**").hasRole("ADMIN")
+                .and().formLogin().loginPage("/login.html").loginProcessingUrl("/login").permitAll()
+                .and().logout()
+                .logoutUrl("/logout")
+                .logoutSuccessUrl("/")
+                .and().httpBasic();
 
     }
 

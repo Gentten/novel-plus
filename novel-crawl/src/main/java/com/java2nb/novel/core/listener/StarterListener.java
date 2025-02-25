@@ -76,7 +76,7 @@ public class StarterListener implements ServletContextListener {
                                     log.info("尝试查询数据：{}", needUpdateBook.getBookName());
                                     String bookId = trySearchBookId(needUpdateBook.getBookName(), ruleBean);
                                     if (StringUtils.isEmpty(bookId)) {
-                                        log.warn("没找到书籍：{}", needUpdateBook.getBookName());
+                                        log.error(":没找到书籍：{},{}", needUpdateBook.getBookName(), ruleBean.getSearchUrl());
                                         continue;
                                     }
                                     bookService.updateCrawlProperties(needUpdateBook.getId(), needUpdateBook.getCrawlSourceId(), bookId);
